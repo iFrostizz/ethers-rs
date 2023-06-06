@@ -114,6 +114,7 @@ pub trait Visitor<D>: AsAny {
     impl_visitor!(YulIdentifier);
     impl_visitor!(YulLiteral);
     impl_visitor!(YulLeave);
+    impl_visitor!(YulTypedName);
 }
 
 pub trait Visitable {
@@ -164,9 +165,9 @@ empty_visitable!(YulExpressionStatement);
 empty_visitable!(YulFunctionDefinition);
 empty_visitable!(YulIf);
 empty_visitable!(YulSwitch);
-empty_visitable!(YulVariableDeclaration);
 empty_visitable!(YulIdentifier);
 empty_visitable!(YulLiteral);
+empty_visitable!(YulTypedName);
 
 impl<T> Visitable for Vec<T>
 where
@@ -685,7 +686,7 @@ impl Visitable for DoWhileStatement {
     where
         V: Visitor<D> + ?Sized,
     {
-        v.visit_block(&mut self.block)?;
+        v.visit_block(&mut self.body)?;
         v.visit_expression(&mut self.condition)
     }
 }
@@ -795,6 +796,16 @@ impl Visitable for YulFunctionCall {
     {
         self.arguments.iter_mut().try_for_each(|s| v.visit_yul_expression(s))?;
         v.visit_yul_identifier(&mut self.function_name)
+    }
+}
+
+impl Visitable for YulVariableDeclaration {
+    fn visit<V, D>(&mut self, v: &mut V) -> Result<(), VisitError>
+    where
+        V: Visitor<D> + ?Sized,
+    {
+        self.value.as_mut().map_or_else(|| Ok(()), |n| v.visit_yul_expression(n))?;
+        self.variables.iter_mut().try_for_each(|s| v.visit_yul_typed_name(s))
     }
 }
 

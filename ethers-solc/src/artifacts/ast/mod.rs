@@ -404,6 +404,9 @@ ast_node!(
         #[serde(default, deserialize_with = "serde_helpers::default_for_null")]
         argument_types: Vec<TypeDescriptions>,
         name: String,
+        overloaded_declaration_ids: Option<Vec<isize>>,
+        referenced_declaration_id: Option<isize>,
+        // TODO: use enums to wrap the types
         overloaded_declarations: Vec<isize>,
         referenced_declaration: Option<isize>,
         type_descriptions: TypeDescriptions,
@@ -805,7 +808,7 @@ stmt_node!(
 stmt_node!(
     /// A do while statement.
     struct DoWhileStatement {
-        block: Block,
+        body: Block,
         condition: Expression,
     }
 );
